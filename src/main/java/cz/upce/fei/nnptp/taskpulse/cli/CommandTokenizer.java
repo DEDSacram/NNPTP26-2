@@ -23,8 +23,15 @@ public final class CommandTokenizer {
             if (inQuotes) {
                 if (c == quoteChar) {
                     inQuotes = false;
-                } else if (c == '\\' && i + 1 < line.length() && line.charAt(i + 1) == quoteChar) {
-                    current.append(quoteChar);
+                } else if (c == '\\' && i + 1 < line.length()) {
+                    char next = line.charAt(i + 1);
+                    switch (next) {
+                        case 'n' -> current.append('\n');
+                        case 't' -> current.append('\t');
+                        case '\\' -> current.append('\\');
+                        case '\"', '\'' -> current.append(next);
+                        default -> current.append(c).append(next);
+                    }
                     i++;
                 } else {
                     current.append(c);
