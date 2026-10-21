@@ -28,7 +28,7 @@ public final class CsvUtils {
         StringBuilder currentField = new StringBuilder();
 
         boolean inQuotes = false;
-        int prev = -1;
+        int prev = -1; // 
         int current;
 
         while ((current = bufferedReader.read()) != -1) {
