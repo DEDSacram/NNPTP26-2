@@ -1,14 +1,8 @@
 coverage:
   status:
-    project: off
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        base: auto 
     patch: off
-
-flag_management:
-  individual_flags:
-    - name: taskpulse
-      paths:
-        - src/main/java
-      statuses:
-        - type: project
-          target: 60%
-          threshold: 1%
