@@ -1,0 +1,53 @@
+package cz.upce.fei.nnptp.taskpulse.cli;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public final class CommandTokenizer {
+    private CommandTokenizer() {
+    }
+
+    public static List<String> tokenize(String line) {
+        List<String> tokens = new ArrayList<>();
+        if (line == null || line.isBlank()) {
+            return tokens;
+        }
+
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+        char quoteChar = ' ';
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (inQuotes) {
+                if (c == quoteChar) {
+                    inQuotes = false;
+                } else if (c == '\\' && i + 1 < line.length() && line.charAt(i + 1) == quoteChar) {
+                    current.append(quoteChar);
+                    i++;
+                } else {
+                    current.append(c);
+                }
+            } else {
+                if (c == '\"' || c == '\'') {
+                    inQuotes = true;
+                    quoteChar = c;
+                } else if (Character.isWhitespace(c)) {
+                    if (current.length() > 0) {
+                        tokens.add(current.toString());
+                        current.setLength(0);
+                    }
+                } else {
+                    current.append(c);
+                }
+            }
+        }
+
+        if (current.length() > 0) {
+            tokens.add(current.toString());
+        }
+
+        return tokens;
+    }
+}

@@ -1,0 +1,87 @@
+package cz.upce.fei.nnptp.taskpulse.storage.csv;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+
+public final class CsvUtils {
+    private CsvUtils() {
+    }
+
+    public static String escape(String value) {
+        if (value == null) {
+            return "";
+        }
+        boolean mustQuote = value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r");
+        if (!mustQuote) {
+            return value;
+        }
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
+    public static List<List<String>> parse(Reader reader) throws IOException {
+        BufferedReader bufferedReader = (reader instanceof BufferedReader br) ? br : new BufferedReader(reader);
+        List<List<String>> rows = new ArrayList<>();
+        List<String> currentRow = new ArrayList<>();
+        StringBuilder currentField = new StringBuilder();
+
+        boolean inQuotes = false;
+        int prev = -1;
+        int current;
+
+        while ((current = bufferedReader.read()) != -1) {
+            char ch = (char) current;
+
+            if (inQuotes) {
+                if (ch == '\"') {
+                    bufferedReader.mark(1);
+                    int next = bufferedReader.read();
+                    if (next == '\"') {
+                        currentField.append('\"');
+                    } else {
+                        inQuotes = false;
+                        if (next != -1) {
+                            bufferedReader.reset();
+                        }
+                    }
+                } else {
+                    currentField.append(ch);
+                }
+            } else {
+                if (ch == '\"') {
+                    inQuotes = true;
+                } else if (ch == ',') {
+                    currentRow.add(currentField.toString());
+                    currentField.setLength(0);
+                } else if (ch == '\r') {
+                    bufferedReader.mark(1);
+                    int next = bufferedReader.read();
+                    if (next != '\n' && next != -1) {
+                        bufferedReader.reset();
+                    }
+                    currentRow.add(currentField.toString());
+                    currentField.setLength(0);
+                    rows.add(new ArrayList<>(currentRow));
+                    currentRow.clear();
+                } else if (ch == '\n') {
+                    currentRow.add(currentField.toString());
+                    currentField.setLength(0);
+                    rows.add(new ArrayList<>(currentRow));
+                    currentRow.clear();
+                } else {
+                    currentField.append(ch);
+                }
+            }
+            prev = current;
+        }
+
+        if (currentField.length() > 0 || !currentRow.isEmpty()) {
+            currentRow.add(currentField.toString());
+            rows.add(new ArrayList<>(currentRow));
+        }
+
+        return rows;
+    }
+}
