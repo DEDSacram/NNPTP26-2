@@ -22,7 +22,7 @@ jobs:
           cache: maven
 
       - name: Build and run tests with Maven
-        run: ./mvnw -B clean verify
+        run: mvn -B clean verify
 
       - name: Upload JaCoCo Coverage Report
         uses: actions/upload-artifact@v4
