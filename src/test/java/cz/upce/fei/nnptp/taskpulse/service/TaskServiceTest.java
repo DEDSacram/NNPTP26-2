@@ -137,4 +137,28 @@ class TaskServiceTest {
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Invalid date range");
     }
+
+    @Test
+    void updateTaskRejectsNegativeEstimatesOnExistingTasks() {
+        var project = projectService.createProject("P", "");
+        taskService.createTask(project.getId(), "Original", "", Priority.MEDIUM, 30, null);
+        UUID taskId = taskService.listTasks().get(0).getId();
+
+        assertThatThrownBy(() -> taskService.updateTask(taskId, "Updated", "", Priority.MEDIUM, -5, null))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Estimated minutes cannot be negative");
+        assertThat(taskService.getTask(taskId).getEstimatedMinutes()).isEqualTo(30);
+    }
+
+    @Test
+    void updateTaskRejectsBlankTitlesOnExistingTasks() {
+        var project = projectService.createProject("P", "");
+        taskService.createTask(project.getId(), "Original", "", Priority.MEDIUM, null, null);
+        UUID taskId = taskService.listTasks().get(0).getId();
+
+        assertThatThrownBy(() -> taskService.updateTask(taskId, "   ", "", Priority.MEDIUM, null, null))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Task title must not be blank");
+        assertThat(taskService.getTask(taskId).getTitle()).isEqualTo("Original");
+    }
 }
