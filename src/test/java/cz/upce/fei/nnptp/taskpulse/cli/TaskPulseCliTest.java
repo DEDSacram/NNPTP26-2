@@ -103,4 +103,21 @@ class TaskPulseCliTest {
         cli.runInteractive(scanner);
         assertThat(outContent.toString()).contains("TaskPulse CLI", "Available commands:");
     }
+
+    @Test
+    void taskStateAndPriorityEnumsParseCaseInsensitively() {
+        var project = projectService.createProject("Course", "Desc");
+        String projectId = project.getId().toString();
+
+        cli.executeLine("task add " + projectId + " \"Case test\" \"\"");
+        String taskId = taskService.listTasks().get(0).getId().toString();
+
+        cli.executeLine("task transition " + taskId + " in_progress");
+        assertThat(outContent.toString()).contains("transitioned to IN_PROGRESS");
+
+        outContent.reset();
+        cli.executeLine("task list --project " + projectId + " --state in_progress --priority medium");
+        assertThat(outContent.toString()).contains("Case test");
+        assertThat(errContent.toString()).isEmpty();
+    }
 }
